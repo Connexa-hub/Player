@@ -27,6 +27,7 @@ android {
         release {
             minifyEnabled false
             //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // No signingConfig: builds will be unsigned
         }
     }
     flavorDimensions "targetSdk", "distribution"
