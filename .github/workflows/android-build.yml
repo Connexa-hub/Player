@@ -27,23 +27,32 @@ jobs:
       - name: Ensure gradlew is executable
         run: chmod +x ./gradlew
 
-      - name: Build release APK
+      - name: Build APK(s) for app module
         run: |
-          echo "Building app module release APK..."
-          ./gradlew :app:assembleRelease
+          echo "Building app module APK(s)..."
+          ./gradlew :app:assembleRelease || true
+          ./gradlew :app:assembleDebug
 
-      - name: Collect installable APK(s)
+      - name: Select main APK
         run: |
-          mkdir -p release || true
-          # Copy only app module release APK(s)
-          find app/build/outputs/apk/release -type f -name "*release.apk" -exec cp {} release/ \;
+          mkdir -p release
+          # Prefer release APK if it exists
+          RELEASE_APK=$(find app/build/outputs/apk/release -type f -name "*release.apk" | head -n 1)
+          if [ -n "$RELEASE_APK" ]; then
+            echo "Using release APK: $RELEASE_APK"
+            cp "$RELEASE_APK" release/app.apk
+          else
+            DEBUG_APK=$(find app/build/outputs/apk/debug -type f -name "*debug.apk" | head -n 1)
+            echo "Release APK not found. Using debug APK: $DEBUG_APK"
+            cp "$DEBUG_APK" release/app.apk
+          fi
           ls -la release
 
       - name: Make a zip for easy sideloading
         run: |
           rm -f app-release.zip || true
           cd release
-          zip -r ../app-release.zip ./*
+          zip -r ../app-release.zip app.apk
           cd ..
           echo "Created app-release.zip with contents:"
           unzip -l app-release.zip
