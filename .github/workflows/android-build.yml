@@ -1,5 +1,4 @@
 name: Android Build APK
-
 on:
   push:
     branches:
@@ -28,30 +27,26 @@ jobs:
       - name: Ensure gradlew is executable
         run: chmod +x ./gradlew
 
-      - name: Build release (APK + AAB)
+      - name: Build release APK
         run: |
-          echo "Running Gradle assembleRelease and bundleRelease..."
-          ./gradlew assembleRelease bundleRelease
+          echo "Building app module release APK..."
+          ./gradlew :app:assembleRelease
 
-      - name: Collect artifacts (APK / AAB) into a single folder
+      - name: Collect installable APK(s)
         run: |
           mkdir -p release || true
-          find app/build/outputs -type f \( -iname "*.apk" -o -iname "*.aab" \) -print -exec cp {} release/ \; || true
-          ls -la release || true
+          # Copy only app module release APK(s)
+          find app/build/outputs/apk/release -type f -name "*release.apk" -exec cp {} release/ \;
+          ls -la release
 
-      - name: Make a zip for easy sideloading (app-release.zip)
+      - name: Make a zip for easy sideloading
         run: |
           rm -f app-release.zip || true
-          if [ -d release ] && [ "$(ls -A release)" ]; then
-            cd release
-            zip -r ../app-release.zip ./*
-            cd ..
-            echo "Created app-release.zip with contents:"
-            unzip -l app-release.zip
-          else
-            echo "No APK / AAB found to zip. Creating an empty zip to avoid step failure."
-            zip -r app-release.zip --filesync --quiet --recurse-paths -- *
-          fi
+          cd release
+          zip -r ../app-release.zip ./*
+          cd ..
+          echo "Created app-release.zip with contents:"
+          unzip -l app-release.zip
 
       - name: Upload zipped release artifact
         uses: actions/upload-artifact@v4
@@ -63,7 +58,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            app-release.zip
+          files: app-release.zip
           prerelease: true
           draft: true
