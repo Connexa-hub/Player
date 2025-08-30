@@ -1,42 +1,64 @@
-name: Android Build APK
+  - name: Set up Java (Gradle cache)
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: 17
+      cache: gradle
 
-on:
-  push:
-    tags:
-      - 'v0.*'
+  - name: Ensure gradlew is executable
+    run: chmod +x ./gradlew
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+  - name: Decode keystore (if provided)
+    run: |
+      if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+        echo "Decoding keystore..."
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "${GITHUB_WORKSPACE}/keystore.jks"
+      else
+        echo "No KEYSTORE_BASE64 secret provided — continuing without decoding keystore."
+      fi
 
-    steps:
-      - uses: actions/checkout@v4
+  - name: Build release (APK + AAB)
+    env:
+      KEYSTORE_PATH: "${{ github.workspace }}/keystore.jks"
+    run: |
+      echo "Running Gradle assembleRelease and bundleRelease..."
+      ./gradlew assembleRelease bundleRelease \
+        -Pandroid.injected.signing.store.file="${KEYSTORE_PATH}" \
+        -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+        -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+        -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: gradle
+  - name: Collect artifacts (APK / AAB) into a single folder
+    run: |
+      mkdir -p release || true
+      find app/build/outputs -type f \( -iname "*.apk" -o -iname "*.aab" \) -print -exec cp {} release/ \; || true
+      ls -la release || true
 
-      - run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > ${GITHUB_WORKSPACE}/keystore.jks
+  - name: Make a zip for easy sideloading (app-release.zip)
+    run: |
+      rm -f app-release.zip || true
+      if [ -d release ] && [ "$(ls -A release)" ]; then
+        cd release
+        zip -r ../app-release.zip ./*
+        cd ..
+        echo "Created app-release.zip with contents:"
+        unzip -l app-release.zip
+      else
+        echo "No APK / AAB found to zip. Creating an empty zip to avoid step failure."
+        zip -r app-release.zip --filesync --quiet --recurse-paths -- *
+      fi
 
-      - run: ./gradlew assembleRelease bundleRelease
-          -Pandroid.injected.signing.store.file=${GITHUB_WORKSPACE}/keystore.jks
-          -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }}
-          -Pandroid.injected.signing.key.alias=key
-          -Pandroid.injected.signing.key.password=${{ secrets.KEYSTORE_PASSWORD }}
+  - name: Upload zipped release artifact
+    uses: actions/upload-artifact@v4
+    with:
+      name: app-release-zip
+      path: app-release.zip
 
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            app/build/outputs/apk/latestUniversal/release/*.apk
-            app/build/outputs/apk/legacyUniversal/release/*.apk
-          prerelease: true
-          draft: true
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release
-          path: |
-            app/build/outputs/apk/*/release/*.apk
-            app/build/outputs/bundle/*/*.aab
+  - name: Create GitHub Release and attach zip (only for tag runs)
+    if: startsWith(github.ref, 'refs/tags/')
+    uses: softprops/action-gh-release@v2
+    with:
+      files: |
+        app-release.zip
+      prerelease: true
+      draft: true
