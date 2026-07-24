@@ -3,6 +3,8 @@ package com.brouken.player;
 import android.app.Activity;
 import android.view.WindowManager;
 
+import com.brouken.player.core.gestures.BrightnessCurve;
+
 class BrightnessControl {
 
     private final Activity activity;
@@ -24,21 +26,16 @@ class BrightnessControl {
     }
 
     public void changeBrightness(final CustomPlayerView playerView, final boolean increase, final boolean canSetAuto) {
-        int newBrightnessLevel = (increase ? currentBrightnessLevel + 1 : currentBrightnessLevel - 1);
+        currentBrightnessLevel = BrightnessCurve.nextLevel(currentBrightnessLevel, increase, canSetAuto);
 
-        if (canSetAuto && newBrightnessLevel < 0)
-            currentBrightnessLevel = -1;
-        else if (newBrightnessLevel >= 0 && newBrightnessLevel <= 30)
-            currentBrightnessLevel = newBrightnessLevel;
-
-        if (currentBrightnessLevel == -1 && canSetAuto)
+        if (currentBrightnessLevel == BrightnessCurve.LEVEL_AUTO && canSetAuto)
             setScreenBrightness(WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE);
-        else if (currentBrightnessLevel != -1)
+        else if (currentBrightnessLevel != BrightnessCurve.LEVEL_AUTO)
             setScreenBrightness(levelToBrightness(currentBrightnessLevel));
 
         playerView.setHighlight(false);
 
-        if (currentBrightnessLevel == -1 && canSetAuto) {
+        if (currentBrightnessLevel == BrightnessCurve.LEVEL_AUTO && canSetAuto) {
             playerView.setIconBrightnessAuto();
             playerView.setCustomErrorMessage("");
         } else {
@@ -48,7 +45,7 @@ class BrightnessControl {
     }
 
     float levelToBrightness(final int level) {
-        final double d = 0.064 + 0.936 / (double) 30 * (double) level;
-        return (float) (d * d);
+        return BrightnessCurve.levelToBrightness(level);
     }
 }
+

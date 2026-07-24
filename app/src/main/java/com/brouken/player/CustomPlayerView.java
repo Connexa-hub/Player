@@ -19,6 +19,8 @@ import androidx.media3.exoplayer.SeekParameters;
 import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
 
+import com.brouken.player.core.gestures.SeekGestureCalculator;
+
 import java.util.Collections;
 
 public class CustomPlayerView extends PlayerView implements GestureDetector.OnGestureListener, ScaleGestureDetector.OnScaleGestureListener {
@@ -235,25 +237,23 @@ public class CustomPlayerView extends PlayerView implements GestureDetector.OnGe
 
                 gestureOrientation = Orientation.HORIZONTAL;
                 long position = 0;
-                float distanceDiff = Math.max(0.5f, Math.min(Math.abs(Utils.pxToDp(distanceX) / 4), 10.f));
+                float distanceDiff = SeekGestureCalculator.distanceDiff(Utils.pxToDp(distanceX));
 
                 if (PlayerActivity.haveMedia) {
                     if (gestureScrollX > 0) {
-                        if (seekStart + seekChange - SEEK_STEP  * distanceDiff >= 0) {
+                        SeekGestureCalculator.Seek seek = SeekGestureCalculator.backward(seekStart, seekChange, distanceDiff, SEEK_STEP);
+                        if (seek.applied) {
                             PlayerActivity.player.setSeekParameters(SeekParameters.PREVIOUS_SYNC);
-                            seekChange -= SEEK_STEP * distanceDiff;
-                            position = seekStart + seekChange;
+                            seekChange = seek.seekChange;
+                            position = seek.position;
                             PlayerActivity.player.seekTo(position);
                         }
                     } else {
                         PlayerActivity.player.setSeekParameters(SeekParameters.NEXT_SYNC);
-                        if (seekMax == C.TIME_UNSET) {
-                            seekChange += SEEK_STEP * distanceDiff;
-                            position = seekStart + seekChange;
-                            PlayerActivity.player.seekTo(position);
-                        } else if (seekStart + seekChange + SEEK_STEP < seekMax) {
-                            seekChange += SEEK_STEP  * distanceDiff;
-                            position = seekStart + seekChange;
+                        SeekGestureCalculator.Seek seek = SeekGestureCalculator.forward(seekStart, seekChange, distanceDiff, SEEK_STEP, seekMax, C.TIME_UNSET);
+                        if (seek.applied) {
+                            seekChange = seek.seekChange;
+                            position = seek.position;
                             PlayerActivity.player.seekTo(position);
                         }
                     }

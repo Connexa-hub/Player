@@ -35,7 +35,6 @@ import android.os.Parcelable;
 import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Rational;
 import android.util.TypedValue;
@@ -58,16 +57,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.compose.ui.platform.ComposeView;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 import androidx.documentfile.provider.DocumentFile;
-import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
 import androidx.media3.common.Format;
 import androidx.media3.common.MediaItem;
-import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
@@ -75,17 +74,10 @@ import androidx.media3.common.TrackGroup;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.TrackSelectionParameters;
 import androidx.media3.common.Tracks;
-import androidx.media3.datasource.DefaultHttpDataSource;
-import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlaybackException;
 import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.exoplayer.RenderersFactory;
 import androidx.media3.exoplayer.SeekParameters;
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
-import androidx.media3.extractor.DefaultExtractorsFactory;
-import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory;
-import androidx.media3.extractor.ts.TsExtractor;
 import androidx.media3.session.MediaSession;
 import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.CaptionStyleCompat;
@@ -95,6 +87,11 @@ import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.SubtitleView;
 import androidx.media3.ui.TimeBar;
 
+import com.brouken.player.core.library.HistoryRecorder;
+import com.brouken.player.core.playback.MediaItemFactory;
+import com.brouken.player.core.playback.MediaItemParams;
+import com.brouken.player.core.playback.PlaybackConfig;
+import com.brouken.player.core.playback.PlaybackEngine;
 import com.brouken.player.dtpv.DoubleTapPlayerView;
 import com.brouken.player.dtpv.youtube.YouTubeOverlay;
 import com.getkeepsafe.taptargetview.TapTarget;
@@ -105,7 +102,6 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -118,6 +114,7 @@ public class PlayerActivity extends Activity {
     private AudioManager mAudioManager;
     private MediaSession mediaSession;
     private DefaultTrackSelector trackSelector;
+    @Nullable private ComposeControlsBridge composeControlsBridge;
     public static LoudnessEnhancer loudnessEnhancer;
 
     public CustomPlayerView playerView;
@@ -1184,75 +1181,13 @@ public class PlayerActivity extends Activity {
             player = null;
         }
 
-        trackSelector = new DefaultTrackSelector(this);
-        trackSelector.setParameters(trackSelector.buildUponParameters()
-                .setAllowInvalidateSelectionsOnRendererCapabilitiesChange(true));
-        if (mPrefs.tunneling) {
-            trackSelector.setParameters(trackSelector.buildUponParameters()
-                    .setTunnelingEnabled(true)
-            );
-        }
-        switch (mPrefs.languageAudio) {
-            case Prefs.TRACK_DEFAULT:
-                break;
-            case Prefs.TRACK_DEVICE:
-                trackSelector.setParameters(trackSelector.buildUponParameters()
-                        .setPreferredAudioLanguages(Utils.getDeviceLanguages())
-                );
-                break;
-            default:
-                trackSelector.setParameters(trackSelector.buildUponParameters()
-                        .setPreferredAudioLanguages(mPrefs.languageAudio)
-                );
-        }
         final CaptioningManager captioningManager = (CaptioningManager) getSystemService(Context.CAPTIONING_SERVICE);
-        if (!captioningManager.isEnabled()) {
-            trackSelector.setParameters(trackSelector.buildUponParameters()
-                    .setIgnoredTextSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-            );
-        }
-        Locale locale = captioningManager.getLocale();
-        if (locale != null) {
-            trackSelector.setParameters(trackSelector.buildUponParameters()
-                    .setPreferredTextLanguage(locale.getISO3Language())
-            );
-        }
-        // https://github.com/google/ExoPlayer/issues/8571
-        DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory()
-                .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS)
-                .setTsExtractorTimestampSearchBytes(1500 * TsExtractor.TS_PACKET_SIZE);
-        @SuppressLint("WrongConstant") RenderersFactory renderersFactory = new DefaultRenderersFactory(this)
-                .setExtensionRendererMode(mPrefs.decoderPriority)
-                .setMapDV7ToHevc(mPrefs.mapDV7ToHevc);
+        final PlaybackConfig playbackConfig = new PrefsPlaybackConfig(mPrefs, Utils.getDeviceLanguages());
+        final PlaybackEngine.Result engineResult =
+                PlaybackEngine.createPlayer(this, playbackConfig, captioningManager);
 
-        ExoPlayer.Builder playerBuilder = new ExoPlayer.Builder(this, renderersFactory)
-                .setTrackSelector(trackSelector)
-                .setMediaSourceFactory(new DefaultMediaSourceFactory(this, extractorsFactory));
-
-        if (haveMedia && isNetworkUri) {
-            if (mPrefs.mediaUri.getScheme().toLowerCase().startsWith("http")) {
-                HashMap<String, String> headers = new HashMap<>();
-                String userInfo = mPrefs.mediaUri.getUserInfo();
-                if (userInfo != null && userInfo.length() > 0 && userInfo.contains(":")) {
-                    headers.put("Authorization", "Basic " + Base64.encodeToString(userInfo.getBytes(), Base64.NO_WRAP));
-                    DefaultHttpDataSource.Factory defaultHttpDataSourceFactory = new DefaultHttpDataSource.Factory();
-                    defaultHttpDataSourceFactory.setDefaultRequestProperties(headers);
-                    playerBuilder.setMediaSourceFactory(new DefaultMediaSourceFactory(defaultHttpDataSourceFactory, extractorsFactory));
-                }
-            }
-        }
-
-        player = playerBuilder.build();
-
-        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                .build();
-        player.setAudioAttributes(audioAttributes, true);
-
-        if (mPrefs.skipSilence) {
-            player.setSkipSilenceEnabled(true);
-        }
+        trackSelector = engineResult.trackSelector;
+        player = engineResult.player;
 
         youTubeOverlay.player(player);
         playerView.setPlayer(player);
@@ -1260,12 +1195,22 @@ public class PlayerActivity extends Activity {
         if (mediaSession != null) {
             mediaSession.release();
         }
+        mediaSession = engineResult.mediaSession;
 
-        if (player.canAdvertiseSession()) {
-            try {
-                mediaSession = new MediaSession.Builder(this, player).build();
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
+        if (composeControlsBridge != null) {
+            composeControlsBridge.detach();
+            composeControlsBridge = null;
+        }
+        ComposeView composeControlsOverlay = findViewById(R.id.compose_controls_overlay);
+        if (composeControlsOverlay != null) {
+            if (mPrefs.useComposeControls) {
+                composeControlsBridge = new ComposeControlsBridge(composeControlsOverlay, player);
+                composeControlsBridge.attach();
+                composeControlsOverlay.setVisibility(View.VISIBLE);
+                playerView.setUseController(false);
+            } else {
+                composeControlsOverlay.setVisibility(View.GONE);
+                playerView.setUseController(true);
             }
         }
 
@@ -1290,29 +1235,30 @@ public class PlayerActivity extends Activity {
             }
             updatebuttonAspectRatioIcon();
 
-            MediaItem.Builder mediaItemBuilder = new MediaItem.Builder()
-                    .setUri(mPrefs.mediaUri)
-                    .setMimeType(mPrefs.mediaType);
             String title;
             if (apiTitle != null) {
                 title = apiTitle;
             } else {
                 title = Utils.getFileName(PlayerActivity.this, mPrefs.mediaUri);
             }
-            if (title != null) {
-                final MediaMetadata mediaMetadata = new MediaMetadata.Builder()
-                        .setTitle(title)
-                        .setDisplayTitle(title)
-                        .build();
-                mediaItemBuilder.setMediaMetadata(mediaMetadata);
-            }
+            List<MediaItem.SubtitleConfiguration> subtitleConfigurations = null;
             if (apiAccess && apiSubs.size() > 0) {
-                mediaItemBuilder.setSubtitleConfigurations(apiSubs);
+                subtitleConfigurations = apiSubs;
             } else if (mPrefs.subtitleUri != null && Utils.fileExists(this, mPrefs.subtitleUri)) {
                 MediaItem.SubtitleConfiguration subtitle = SubtitleUtils.buildSubtitle(this, mPrefs.subtitleUri, null, true);
-                mediaItemBuilder.setSubtitleConfigurations(Collections.singletonList(subtitle));
+                subtitleConfigurations = Collections.singletonList(subtitle);
             }
-            player.setMediaItem(mediaItemBuilder.build(), mPrefs.getPosition());
+            MediaItem mediaItem = MediaItemFactory.create(
+                    new MediaItemParams(mPrefs.mediaUri, mPrefs.mediaType, title, subtitleConfigurations));
+            player.setMediaItem(mediaItem, mPrefs.getPosition());
+
+            try {
+                HistoryRecorder.getInstance(this).recordAsync(
+                        mPrefs.mediaUri.toString(), title, 0L, mPrefs.getPosition(), true);
+            } catch (Throwable t) {
+                // History recording must never be able to break playback.
+                t.printStackTrace();
+            }
 
             try {
                 if (loudnessEnhancer != null) {
@@ -1390,6 +1336,14 @@ public class PlayerActivity extends Activity {
                         playerView.getResizeMode(),
                         playerView.getVideoSurfaceView().getScaleX(),
                         player.getPlaybackParameters().speed);
+
+                try {
+                    long durationMs = player.getDuration() == C.TIME_UNSET ? 0L : player.getDuration();
+                    HistoryRecorder.getInstance(this).recordAsync(
+                            mPrefs.mediaUri.toString(), null, durationMs, player.getCurrentPosition(), false);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
             }
         }
     }
@@ -1401,6 +1355,11 @@ public class PlayerActivity extends Activity {
     public void releasePlayer(boolean save) {
         if (save) {
             savePlayer();
+        }
+
+        if (composeControlsBridge != null) {
+            composeControlsBridge.detach();
+            composeControlsBridge = null;
         }
 
         if (player != null) {

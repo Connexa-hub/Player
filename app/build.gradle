@@ -1,5 +1,7 @@
 plugins {
     id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
 android {
@@ -74,12 +76,22 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
     buildFeatures {
         buildConfig = true
+        compose true
     }
     lint {
         disable 'MissingTranslation'
         disable 'UnsafeOptInUsageError'
+    }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
     }
 }
 
@@ -114,5 +126,25 @@ dependencies {
     implementation 'com.sigpwned:chardet4j:77.1.0'
     implementation project(path: ':doubletapplayerview')
     implementation project(path: ':android-file-chooser')
+    implementation project(path: ':core-playback')
+    implementation project(path: ':core-gestures')
+    implementation project(path: ':core-design-system')
+    implementation project(path: ':feature-player-ui')
+    implementation project(path: ':core-library')
+    implementation project(path: ':feature-library-ui')
+
+    def composeBom = platform('androidx.compose:compose-bom:2025.06.01')
+    implementation composeBom
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.foundation:foundation'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material:material-icons-core'
+    implementation 'androidx.compose.runtime:runtime'
+    implementation 'androidx.compose.runtime:runtime-livedata'
+    implementation 'androidx.activity:activity-compose:1.9.3'
     implementation fileTree(dir: "libs", include: ["lib-*.aar"])
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.13'
+    testImplementation 'androidx.test:core:1.6.1'
 }

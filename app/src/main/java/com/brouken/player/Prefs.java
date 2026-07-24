@@ -38,6 +38,7 @@ class Prefs {
     private static final String PREF_KEY_AUTO_PIP = "autoPiP";
     private static final String PREF_KEY_TUNNELING = "tunneling";
     private static final String PREF_KEY_SKIP_SILENCE = "skipSilence";
+    private static final String PREF_KEY_USE_COMPOSE_CONTROLS = "useComposeControls";
     private static final String PREF_KEY_FRAMERATE_MATCHING = "frameRateMatching";
     private static final String PREF_KEY_REPEAT_TOGGLE = "repeatToggle";
     private static final String PREF_KEY_SPEED = "speed";
@@ -73,6 +74,14 @@ class Prefs {
 
     public boolean tunneling = false;
     public boolean skipSilence = false;
+    /**
+     * Experimental: render the new Compose-based glass control surface
+     * ({@code feature-player-ui}) instead of the legacy XML {@code exo_player_control_view}.
+     * Defaults to false and has no Settings UI yet — flip manually for local testing until the
+     * new surface reaches parity with the legacy controls (gestures, track-selection menus,
+     * subtitle styling, PiP, etc. are not yet wired to it).
+     */
+    public boolean useComposeControls = false;
     public boolean frameRateMatching = false;
     public boolean repeatToggle = false;
     public String fileAccess = "auto";
@@ -122,6 +131,7 @@ class Prefs {
         autoPiP = mSharedPreferences.getBoolean(PREF_KEY_AUTO_PIP, autoPiP);
         tunneling = mSharedPreferences.getBoolean(PREF_KEY_TUNNELING, tunneling);
         skipSilence = mSharedPreferences.getBoolean(PREF_KEY_SKIP_SILENCE, skipSilence);
+        useComposeControls = mSharedPreferences.getBoolean(PREF_KEY_USE_COMPOSE_CONTROLS, useComposeControls);
         frameRateMatching = mSharedPreferences.getBoolean(PREF_KEY_FRAMERATE_MATCHING, frameRateMatching);
         repeatToggle = mSharedPreferences.getBoolean(PREF_KEY_REPEAT_TOGGLE, repeatToggle);
         fileAccess = mSharedPreferences.getString(PREF_KEY_FILE_ACCESS, fileAccess);

@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+android {
+    namespace 'com.brouken.player.core.design'
+    compileSdk 35
+
+    defaultConfig {
+        // Dynamic color (Material You) needs API 31+; the theme falls back to a curated
+        // palette below that, so minSdk stays aligned with the rest of the app.
+        minSdkVersion 21
+        targetSdkVersion 35
+    }
+
+    buildFeatures {
+        compose true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    lint {
+        disable 'MissingTranslation'
+        disable 'UnsafeOptInUsageError'
+    }
+}
+
+dependencies {
+    def composeBom = platform('androidx.compose:compose-bom:2025.06.01')
+    implementation composeBom
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.animation:animation'
+    implementation 'androidx.core:core-ktx:1.13.1'
+
+    testImplementation 'junit:junit:4.13.2'
+}

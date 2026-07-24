@@ -14,4 +14,16 @@
         app:show_subtitle_button="true"
         app:dtpv_controller="@id/youtube_overlay" />
 
+    <!--
+      Experimental Compose control surface (feature-player-ui). GONE by default: only shown
+      when Prefs.useComposeControls is true, in which case PlayerActivity calls setContent() on
+      it. Until then this view is completely inert — inflated but never touched, so it changes
+      nothing about the app's default behavior.
+    -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/compose_controls_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
