@@ -41,6 +41,7 @@ dependencies {
     api "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
     api 'androidx.lifecycle:lifecycle-livedata:2.8.7'
+    api "androidx.annotation:annotation:1.9.1"
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'androidx.room:room-testing:2.6.1'

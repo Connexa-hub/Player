@@ -44,18 +44,19 @@ dependencies {
     api "androidx.media3:media3-decoder:$media3_version"
     api "androidx.media3:media3-common:$media3_version"
     api "androidx.media3:media3-container:$media3_version"
-    implementation("androidx.media3:media3-exoplayer-dash:$media3_version") {
-        exclude group: "androidx.media3", module: "media3-exoplayer"
-    }
-    implementation("androidx.media3:media3-exoplayer-hls:$media3_version") {
-        exclude group: "androidx.media3", module: "media3-exoplayer"
-    }
-    implementation("androidx.media3:media3-exoplayer-smoothstreaming:$media3_version") {
-        exclude group: "androidx.media3", module: "media3-exoplayer"
-    }
-    implementation("androidx.media3:media3-exoplayer-rtsp:$media3_version") {
-        exclude group: "androidx.media3", module: "media3-exoplayer"
-    }
+    api "androidx.annotation:annotation:1.9.1"
+
+    // The app does NOT use the stock Maven androidx.media3:media3-exoplayer /
+    // media3-extractor artifacts — app/libs contains custom-built replacements
+    // (see app/libs/README.md), and app/build.gradle deliberately excludes the
+    // Maven media3-exoplayer module everywhere to avoid it conflicting with those.
+    // This module needs the same ExoPlayer/DefaultTrackSelector/DefaultExtractorsFactory
+    // symbols at compile time, so it compiles against those same local AARs rather than
+    // adding a second, conflicting copy from Maven. `compileOnly` (not `implementation`)
+    // so core-playback's own output doesn't re-package these classes — `app` already
+    // provides them at runtime via its own `implementation fileTree(dir: "libs", ...)`.
+    compileOnly fileTree(dir: "$rootDir/app/libs", include: ["lib-exoplayer-release.aar", "lib-extractor-release.aar"])
+    testImplementation fileTree(dir: "$rootDir/app/libs", include: ["lib-exoplayer-release.aar", "lib-extractor-release.aar"])
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.13'
