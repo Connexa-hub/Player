@@ -1,5 +1,6 @@
 package com.brouken.player.core.design
 
+import androidx.compose.ui.graphics.toArgb
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
