@@ -36,13 +36,20 @@ jobs:
       - name: Select main APK
         run: |
           mkdir -p release
-          # Prefer release APK if it exists
-          RELEASE_APK=$(find app/build/outputs/apk/release -type f -name "*release.apk" | head -n 1)
+          # Prefer release APK if it exists. AGP nests per-flavor output dirs
+          # (e.g. app/build/outputs/apk/latestAccrescent/release/...), so search
+          # recursively under apk/ rather than assuming a flat release/debug path.
+          RELEASE_APK=$(find app/build/outputs/apk -type f -iname "*release*.apk" | head -n 1)
           if [ -n "$RELEASE_APK" ]; then
             echo "Using release APK: $RELEASE_APK"
             cp "$RELEASE_APK" release/app.apk
           else
-            DEBUG_APK=$(find app/build/outputs/apk/debug -type f -name "*debug.apk" | head -n 1)
+            DEBUG_APK=$(find app/build/outputs/apk -type f -iname "*debug*.apk" | head -n 1)
+            if [ -z "$DEBUG_APK" ]; then
+              echo "No release or debug APK found under app/build/outputs/apk. Build outputs:"
+              find app/build/outputs/apk -type f 2>/dev/null || echo "(apk output directory does not exist)"
+              exit 1
+            fi
             echo "Release APK not found. Using debug APK: $DEBUG_APK"
             cp "$DEBUG_APK" release/app.apk
           fi
