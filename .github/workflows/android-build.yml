@@ -30,8 +30,8 @@ jobs:
       - name: Build APK(s) for app module
         run: |
           echo "Building app module APK(s)..."
-          ./gradlew :app:assembleRelease || true
-          ./gradlew :app:assembleDebug
+          ./gradlew :app:assembleLatestUniversalRelease || true
+          ./gradlew :app:assembleLatestUniversalDebug
 
       - name: Select main APK
         run: |

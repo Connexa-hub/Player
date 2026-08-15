@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.getValue
@@ -120,7 +120,7 @@ class ComposeControlsBridge(
                             .padding(16.dp),
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.List,
+                            imageVector = Icons.AutoMirrored.Filled.List,
                             contentDescription = "Library",
                             tint = Color.White,
                         )
