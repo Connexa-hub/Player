@@ -42,6 +42,11 @@
     <string name="mediastore_empty">No video files found</string>
     <string name="pref_dangerous_header">Dangerous ⚠️</string>
     <string name="pref_dangerous_warning">Switching options in this category may break playback of normally compatible content</string>
+    <string name="pref_experimental_header">Experimental 🧪</string>
+    <string name="pref_experimental_warning">Early-access features. They may be incomplete or change without notice.</string>
+    <string name="pref_use_compose_controls">New player controls</string>
+    <string name="pref_use_compose_controls_summary_on">Using the new glass control surface and Library screen (in progress — not all legacy controls are available yet)</string>
+    <string name="pref_use_compose_controls_summary_off">Using the classic player controls</string>
     <string name="pref_shortcuts_header">Shortcuts</string>
     <string name="pref_captioning_preferences">Captioning preferences</string>
     <string name="pref_decoder_priority">Decoder priority</string>

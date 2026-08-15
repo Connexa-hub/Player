@@ -98,4 +98,19 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/pref_experimental_header">
+
+        <Preference
+            app:selectable="false"
+            app:summary="@string/pref_experimental_warning" />
+
+        <SwitchPreferenceCompat
+            app:key="useComposeControls"
+            app:defaultValue="false"
+            app:summaryOn="@string/pref_use_compose_controls_summary_on"
+            app:summaryOff="@string/pref_use_compose_controls_summary_off"
+            app:title="@string/pref_use_compose_controls" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>
