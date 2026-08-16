@@ -26,10 +26,8 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.brouken.player.core.design.FeatureTourOverlay
 import com.brouken.player.core.design.PlayerTheme
 import com.brouken.player.core.design.PlayerThemeMode
-import com.brouken.player.core.design.TourStep
 import com.brouken.player.feature.playerui.PlayerControlsActions
 import com.brouken.player.feature.playerui.PlayerControlsBar
 import com.brouken.player.feature.playerui.PlayerControlsState
@@ -44,23 +42,15 @@ import com.brouken.player.feature.playerui.ScrubberTrack
  * Scope note: this deliberately does not (yet) cover track selection, subtitle styling, PiP, or
  * gesture overlays — it's the minimum real wiring needed to validate that the new composables
  * work against actual playback state. Feature parity with the legacy controls is later work.
- *
- * @param hasSeenTour whether the one-time new-UI tour has already been shown (from
- *   `Prefs.hasSeenComposeControlsTour`)
- * @param onTourFinished called once the tour is dismissed — the caller persists that via
- *   `Prefs.markComposeControlsTourSeen()`
  */
 class ComposeControlsBridge(
     private val composeView: ComposeView,
     private val player: ExoPlayer,
-    private val hasSeenTour: Boolean,
-    private val onTourFinished: Runnable,
 ) {
     private val handler = Handler(Looper.getMainLooper())
     private var positionPoller: Runnable? = null
 
     private var state by mutableStateOf(PlayerControlsState.Empty)
-    private var showTour by mutableStateOf(!hasSeenTour)
 
     private val actions = object : PlayerControlsActions {
         override fun onPlayPauseClick() {
@@ -146,28 +136,6 @@ class ComposeControlsBridge(
                         ScrubberTrack(state = state, actions = actions, modifier = Modifier.fillMaxWidth())
                         PlayerControlsBar(state = state, actions = actions)
                     }
-
-                    FeatureTourOverlay(
-                        visible = showTour,
-                        steps = listOf(
-                            TourStep(
-                                title = "New player controls",
-                                description = "You're trying the new glass control surface — play, pause, and skip in the pill below, and drag the bar above it to seek.",
-                            ),
-                            TourStep(
-                                title = "Your library",
-                                description = "Tap the list icon, top-left, to see Continue Watching, History, and Favorites — built from what you've played.",
-                            ),
-                            TourStep(
-                                title = "Still in progress",
-                                description = "Gestures, subtitles, track selection, and PiP still use the classic controls for now. You can turn this off anytime in Settings → Experimental.",
-                            ),
-                        ),
-                        onFinished = {
-                            showTour = false
-                            onTourFinished.run()
-                        },
-                    )
                 }
             }
         }

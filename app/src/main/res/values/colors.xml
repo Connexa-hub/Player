@@ -3,6 +3,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="green">#3DDC84</color>
+    <color name="lucent_violet">#7A53FF</color>
+    <color name="lucent_cyan">#3DE0C8</color>
     <color name="shortcut_background">#F5F5F5</color>
 
     <color name="ui_controls_background">#98000000</color>

@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Lucent app icon foreground: a soft radial glow (approximated with concentric circles, since
+  VectorDrawable has no blur primitive) behind a play triangle. Coordinates were translated from
+  a Pillow-rendered, visually-verified 1024px master (see docs/BRANDING.md) rather than
+  hand-guessed, to keep this in sync with the legacy PNG mipmaps and store listing icon.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24"
-    android:tint="#FFFFFF">
-    <group android:scaleX="0.493"
-        android:scaleY="0.493"
-        android:translateX="6.084"
-        android:translateY="6.084">
-        <path
-            android:fillColor="@android:color/white"
-            android:pathData="M8,5v14l11,-7z"/>
-    </group>
-</vector>
+    android:viewportWidth="108"
+    android:viewportHeight="108">
 
+    <!-- Soft glow, falloff approximated with 4 concentric low-opacity circles -->
+    <path android:pathData="M54,24 a30,30 0 1,0 0.01,0 z" android:fillColor="#1AFFFFFF" />
+    <path android:pathData="M54,30 a24,24 0 1,0 0.01,0 z" android:fillColor="#2EFFFFFF" />
+    <path android:pathData="M54,36 a18,18 0 1,0 0.01,0 z" android:fillColor="#42FFFFFF" />
+    <path android:pathData="M54,41 a13,13 0 1,0 0.01,0 z" android:fillColor="#55FFFFFF" />
+
+    <!-- Play triangle -->
+    <path
+        android:pathData="M40.5,35.64 L40.5,72.36 L72.9,54 Z"
+        android:fillColor="#FFFFFFFF" />
+</vector>

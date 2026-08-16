@@ -1204,8 +1204,7 @@ public class PlayerActivity extends Activity {
         ComposeView composeControlsOverlay = findViewById(R.id.compose_controls_overlay);
         if (composeControlsOverlay != null) {
             if (mPrefs.useComposeControls) {
-                composeControlsBridge = new ComposeControlsBridge(
-                        composeControlsOverlay, player, mPrefs.hasSeenComposeControlsTour, mPrefs::markComposeControlsTourSeen);
+                composeControlsBridge = new ComposeControlsBridge(composeControlsOverlay, player);
                 composeControlsBridge.attach();
                 composeControlsOverlay.setVisibility(View.VISIBLE);
                 playerView.setUseController(false);

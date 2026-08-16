@@ -1,4 +1,6 @@
-# Just (Video) Player 
+# Lucent
+
+_A fork of [Just (Video) Player](https://github.com/moneytoo/Player) by moneytoo/brouken, being extended into a modernized player — see [docs/](docs/) for the architecture and roadmap._
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/moneytoo/Player.svg?logo=github&label=GitHub&cacheSeconds=3600)](https://github.com/moneytoo/Player/releases/latest)
 [![Google Play](https://img.shields.io/endpoint?color=green&logo=google-play&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.brouken.player%26l%3DGoogle%2520Play%26m%3Dv%24version)](https://play.google.com/store/apps/details?id=com.brouken.player)
