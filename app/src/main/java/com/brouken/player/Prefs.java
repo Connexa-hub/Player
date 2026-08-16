@@ -26,6 +26,7 @@ class Prefs {
     private static final String PREF_KEY_MEDIA_TYPE = "mediaType";
     private static final String PREF_KEY_BRIGHTNESS = "brightness";
     private static final String PREF_KEY_FIRST_RUN = "firstRun";
+    private static final String PREF_KEY_HAS_SEEN_COMPOSE_TOUR = "hasSeenComposeControlsTour";
     private static final String PREF_KEY_SUBTITLE_URI = "subtitleUri";
 
     private static final String PREF_KEY_AUDIO_TRACK_ID = "audioTrackId";
@@ -69,6 +70,14 @@ class Prefs {
 
     public int brightness = -1;
     public boolean firstRun = true;
+    /**
+     * Whether the user has already been shown the one-time tour explaining the new
+     * (experimental) Compose control surface — see {@code Prefs.useComposeControls}.
+     * Mirrors {@link #firstRun}/{@link #markFirstRun()} exactly: every new tutorial-worthy
+     * feature added to the app should get its own such flag rather than reusing this one, so
+     * a user who's seen the classic-controls tour but not the new-UI tour still sees the latter.
+     */
+    public boolean hasSeenComposeControlsTour = false;
     public boolean askScope = true;
     public boolean autoPiP = false;
 
@@ -110,6 +119,7 @@ class Prefs {
             mediaType = mSharedPreferences.getString(PREF_KEY_MEDIA_TYPE, null);
         brightness = mSharedPreferences.getInt(PREF_KEY_BRIGHTNESS, brightness);
         firstRun = mSharedPreferences.getBoolean(PREF_KEY_FIRST_RUN, firstRun);
+        hasSeenComposeControlsTour = mSharedPreferences.getBoolean(PREF_KEY_HAS_SEEN_COMPOSE_TOUR, hasSeenComposeControlsTour);
         if (mSharedPreferences.contains(PREF_KEY_SUBTITLE_URI))
             subtitleUri = Uri.parse(mSharedPreferences.getString(PREF_KEY_SUBTITLE_URI, null));
         if (mSharedPreferences.contains(PREF_KEY_AUDIO_TRACK_ID))
@@ -214,6 +224,13 @@ class Prefs {
         this.firstRun = false;
         final SharedPreferences.Editor sharedPreferencesEditor = mSharedPreferences.edit();
         sharedPreferencesEditor.putBoolean(PREF_KEY_FIRST_RUN, false);
+        sharedPreferencesEditor.apply();
+    }
+
+    public void markComposeControlsTourSeen() {
+        this.hasSeenComposeControlsTour = true;
+        final SharedPreferences.Editor sharedPreferencesEditor = mSharedPreferences.edit();
+        sharedPreferencesEditor.putBoolean(PREF_KEY_HAS_SEEN_COMPOSE_TOUR, true);
         sharedPreferencesEditor.apply();
     }
 
