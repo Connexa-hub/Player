@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         def abiFilter = project.findProperty("abiFilter")
-        applicationId "com.brouken.player"
+        applicationId "com.lucent.player"
         minSdkVersion 21
         targetSdkVersion 35
         versionCode 197

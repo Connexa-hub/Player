@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.brouken.player.core.audiodsp'
+    compileSdk 35
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 35
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
+    }
+
+    lint {
+        disable 'MissingTranslation'
+        disable 'UnsafeOptInUsageError'
+    }
+}
+
+dependencies {
+    def media3_version = '1.8.0'
+
+    // androidx.media3.common.audio.AudioProcessor — this is a Media3 *common* interface (not
+    // exoplayer-specific), so it should resolve via the standard Maven artifact. Declared
+    // defensively alongside the same local-AAR fallback core-playback needed, in case that
+    // assumption is wrong for this Media3 version — see core-playback/build.gradle for why the
+    // local AARs exist at all (this project replaces the stock media3-exoplayer/media3-extractor
+    // Maven artifacts with custom-built ones in app/libs).
+    api "androidx.media3:media3-common:$media3_version"
+    api "androidx.annotation:annotation:1.9.1"
+    compileOnly fileTree(dir: "$rootDir/app/libs", include: ["lib-exoplayer-release.aar"])
+    testImplementation fileTree(dir: "$rootDir/app/libs", include: ["lib-exoplayer-release.aar"])
+
+    testImplementation 'junit:junit:4.13.2'
+}

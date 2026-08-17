@@ -34,6 +34,9 @@ jobs:
       - name: Unit tests (core-gestures — pure JVM, no Android)
         run: ./gradlew :core-gestures:test --stacktrace
 
+      - name: Unit tests (core-audio-dsp)
+        run: ./gradlew :core-audio-dsp:testDebugUnitTest --stacktrace
+
       - name: Unit tests (feature-library-ui)
         run: ./gradlew :feature-library-ui:testDebugUnitTest --stacktrace
 
