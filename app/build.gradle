@@ -132,6 +132,8 @@ dependencies {
     implementation project(path: ':feature-player-ui')
     implementation project(path: ':core-library')
     implementation project(path: ':feature-library-ui')
+    implementation project(path: ':core-audio-dsp')
+    implementation project(path: ':feature-equalizer-ui')
 
     def composeBom = platform('androidx.compose:compose-bom:2025.06.01')
     implementation composeBom

@@ -111,6 +111,14 @@
             app:summaryOff="@string/pref_use_compose_controls_summary_off"
             app:title="@string/pref_use_compose_controls" />
 
+        <Preference
+            app:title="@string/pref_equalizer"
+            app:summary="@string/pref_equalizer_summary">
+            <intent
+                android:targetPackage="com.lucent.player"
+                android:targetClass="com.brouken.player.EqualizerActivity" />
+        </Preference>
+
     </PreferenceCategory>
 
 </PreferenceScreen>

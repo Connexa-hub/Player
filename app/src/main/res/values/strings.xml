@@ -47,6 +47,8 @@
     <string name="pref_use_compose_controls">New player controls</string>
     <string name="pref_use_compose_controls_summary_on">Using the new glass control surface and Library screen (in progress — not all legacy controls are available yet)</string>
     <string name="pref_use_compose_controls_summary_off">Using the classic player controls</string>
+    <string name="pref_equalizer">Equalizer</string>
+    <string name="pref_equalizer_summary">10-band graphic EQ (not yet applied to playback — settings only, for now)</string>
     <string name="pref_shortcuts_header">Shortcuts</string>
     <string name="pref_captioning_preferences">Captioning preferences</string>
     <string name="pref_decoder_priority">Decoder priority</string>

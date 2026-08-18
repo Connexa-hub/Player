@@ -39,6 +39,11 @@ class Prefs {
     private static final String PREF_KEY_TUNNELING = "tunneling";
     private static final String PREF_KEY_SKIP_SILENCE = "skipSilence";
     private static final String PREF_KEY_USE_COMPOSE_CONTROLS = "useComposeControls";
+    private static final String PREF_KEY_EQUALIZER_ENABLED = "equalizerEnabled";
+    private static final String[] PREF_KEY_EQUALIZER_BAND = {
+            "eqBand0", "eqBand1", "eqBand2", "eqBand3", "eqBand4",
+            "eqBand5", "eqBand6", "eqBand7", "eqBand8", "eqBand9",
+    };
     private static final String PREF_KEY_FRAMERATE_MATCHING = "frameRateMatching";
     private static final String PREF_KEY_REPEAT_TOGGLE = "repeatToggle";
     private static final String PREF_KEY_SPEED = "speed";
@@ -82,6 +87,15 @@ class Prefs {
      * subtitle styling, PiP, etc. are not yet wired to it).
      */
     public boolean useComposeControls = false;
+    /**
+     * Persisted 10-band graphic EQ state. {@code equalizerEnabled} gates whether
+     * {@code core-audio-dsp}'s processor is active at all; {@code equalizerBandGainsDb} holds one
+     * gain-in-dB value per band, in {@code GraphicEqualizerBands.FREQUENCIES_HZ} order. Not yet
+     * wired to actual playback — see {@code core-audio-dsp}'s module-level risk note — so this is
+     * currently read/written by the Settings EQ screen only, with no audible effect yet.
+     */
+    public boolean equalizerEnabled = false;
+    public float[] equalizerBandGainsDb = new float[10];
     public boolean frameRateMatching = false;
     public boolean repeatToggle = false;
     public String fileAccess = "auto";
@@ -132,6 +146,10 @@ class Prefs {
         tunneling = mSharedPreferences.getBoolean(PREF_KEY_TUNNELING, tunneling);
         skipSilence = mSharedPreferences.getBoolean(PREF_KEY_SKIP_SILENCE, skipSilence);
         useComposeControls = mSharedPreferences.getBoolean(PREF_KEY_USE_COMPOSE_CONTROLS, useComposeControls);
+        equalizerEnabled = mSharedPreferences.getBoolean(PREF_KEY_EQUALIZER_ENABLED, equalizerEnabled);
+        for (int i = 0; i < PREF_KEY_EQUALIZER_BAND.length; i++) {
+            equalizerBandGainsDb[i] = mSharedPreferences.getFloat(PREF_KEY_EQUALIZER_BAND[i], 0f);
+        }
         frameRateMatching = mSharedPreferences.getBoolean(PREF_KEY_FRAMERATE_MATCHING, frameRateMatching);
         repeatToggle = mSharedPreferences.getBoolean(PREF_KEY_REPEAT_TOGGLE, repeatToggle);
         fileAccess = mSharedPreferences.getString(PREF_KEY_FILE_ACCESS, fileAccess);
@@ -316,6 +334,19 @@ class Prefs {
             sharedPreferencesEditor.remove(PREF_KEY_SCOPE_URI);
         else
             sharedPreferencesEditor.putString(PREF_KEY_SCOPE_URI, uri.toString());
+        sharedPreferencesEditor.apply();
+    }
+
+    public void updateEqualizer(boolean enabled, float[] bandGainsDb) {
+        this.equalizerEnabled = enabled;
+        int n = Math.min(bandGainsDb.length, this.equalizerBandGainsDb.length);
+        System.arraycopy(bandGainsDb, 0, this.equalizerBandGainsDb, 0, n);
+
+        final SharedPreferences.Editor sharedPreferencesEditor = mSharedPreferences.edit();
+        sharedPreferencesEditor.putBoolean(PREF_KEY_EQUALIZER_ENABLED, enabled);
+        for (int i = 0; i < n; i++) {
+            sharedPreferencesEditor.putFloat(PREF_KEY_EQUALIZER_BAND[i], this.equalizerBandGainsDb[i]);
+        }
         sharedPreferencesEditor.apply();
     }
 
